@@ -1,0 +1,18 @@
+#ifndef Control_Monad_ST_Internal_H
+#define Control_Monad_ST_Internal_H
+
+#include <purescript.h>
+
+PURS_FFI_EXPORT(Control_Monad_ST_Internal_map_);
+PURS_FFI_EXPORT(Control_Monad_ST_Internal_pure_);
+PURS_FFI_EXPORT(Control_Monad_ST_Internal_bind_);
+PURS_FFI_EXPORT(Control_Monad_ST_Internal_run);
+PURS_FFI_EXPORT(Control_Monad_ST_Internal_while);
+PURS_FFI_EXPORT(Control_Monad_ST_Internal_for);
+PURS_FFI_EXPORT(Control_Monad_ST_Internal_foreach);
+PURS_FFI_EXPORT(Control_Monad_ST_Internal_new);
+PURS_FFI_EXPORT(Control_Monad_ST_Internal_read);
+PURS_FFI_EXPORT(Control_Monad_ST_Internal_modify$);
+PURS_FFI_EXPORT(Control_Monad_ST_Internal_write);
+
+#endif // Control_Monad_ST_Internal_H
