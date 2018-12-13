@@ -26,7 +26,7 @@ PURS_FFI_FUNC_3(Control_Monad_ST_Internal_while, f, a, _, {
 PURS_FFI_FUNC_4(Control_Monad_ST_Internal_for, _lo, _hi, f, _, {
 	int lo = purs_any_get_int(_lo);
 	int hi = purs_any_get_int(_hi);
-	for (int i = 0; i < hi; i++) {
+	for (int i = lo; i < hi; i++) {
 		purs_any_app(purs_any_app(f, purs_any_int_new(i)), NULL);
 	}
 	return NULL;
