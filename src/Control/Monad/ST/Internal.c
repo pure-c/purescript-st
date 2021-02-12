@@ -1,68 +1,121 @@
 #include <purescript.h>
 
-PURS_FFI_FUNC_3(Control_Monad_ST_Internal_map_, f, a, _, {
-	return purs_any_app(f, purs_any_app(a, NULL));
-});
+PURS_FFI_FUNC_3(Control_Monad_ST_Internal_map_, f, a, _) {
+	purs_any_t v0 = purs_any_app(a, purs_any_null);
+	purs_any_t result = purs_any_app(f, v0);
+	PURS_ANY_RELEASE(v0);
+	return result;
+}
 
-PURS_FFI_FUNC_2(Control_Monad_ST_Internal_pure_, a, _, {
+PURS_FFI_FUNC_2(Control_Monad_ST_Internal_pure_, a, _) {
+	PURS_ANY_RETAIN(a);
 	return a;
-});
+}
 
-PURS_FFI_FUNC_3(Control_Monad_ST_Internal_bind_, a, f, _, {
-	return purs_any_app(purs_any_app(f, purs_any_app(a, NULL)), NULL);
-});
+PURS_FFI_FUNC_3(Control_Monad_ST_Internal_bind_, a, f, _) {
+	purs_any_t v0 = purs_any_app(a, purs_any_null);
+	purs_any_t v1 = purs_any_app(f, v0);
+	purs_any_t result = purs_any_app(v1, purs_any_null);
+	PURS_ANY_RELEASE(v1);
+	PURS_ANY_RELEASE(v0);
+	return result;
+}
 
-PURS_FFI_FUNC_1(Control_Monad_ST_Internal_run, f, {
-	return purs_any_app(f, NULL);
-});
+PURS_FFI_FUNC_1(Control_Monad_ST_Internal_run, f) {
+	return purs_any_app(f, purs_any_null);
+}
 
-PURS_FFI_FUNC_3(Control_Monad_ST_Internal_while, f, a, _, {
-	purs_any_while(purs_any_app(f, NULL)) {
-		purs_any_app(a, NULL);
+PURS_FFI_FUNC_3(Control_Monad_ST_Internal_while, f, a, _) {
+	while (purs_any_is_true(purs_any_app(f, purs_any_null))) {
+		PURS_ANY_RELEASE(purs_any_app(a, purs_any_null));
 	}
-	return NULL;
-});
+	return purs_any_null;
+}
 
-PURS_FFI_FUNC_4(Control_Monad_ST_Internal_for, _lo, _hi, f, _, {
-	int lo = purs_any_get_int(_lo);
-	int hi = purs_any_get_int(_hi);
+PURS_FFI_FUNC_4(Control_Monad_ST_Internal_for, _lo, _hi, f, _) {
+	int lo = purs_any_force_int(_lo);
+	int hi = purs_any_force_int(_hi);
 	for (int i = lo; i < hi; i++) {
-		purs_any_app(purs_any_app(f, purs_any_int_new(i)), NULL);
+		purs_any_t v0 = purs_any_app(f, purs_any_int(i));
+		purs_any_t v1 = purs_any_app(v0, purs_any_null);
+		PURS_ANY_RELEASE(v1);
+		PURS_ANY_RELEASE(v0);
 	}
-	return NULL;
-});
+	return purs_any_null;
+}
 
-PURS_FFI_FUNC_3(Control_Monad_ST_Internal_foreach, _as, f, _, {
-	const purs_vec_t * as = purs_any_get_array(_as);
+PURS_FFI_FUNC_3(Control_Monad_ST_Internal_foreach, _as, f, _) {
+	const purs_vec_t *as = purs_any_force_array(_as);
 	int i;
-	const purs_any_t * tmp;
+	purs_any_t tmp;
 	purs_vec_foreach(as, tmp, i) {
-		purs_any_app(purs_any_app(f, tmp), NULL);
+		purs_any_t v0 = purs_any_app(f, tmp);
+		purs_any_t v1 = purs_any_app(v0, purs_any_null);
+		PURS_ANY_RELEASE(v1);
+		PURS_ANY_RELEASE(v0);
 	}
-	return NULL;
-});
+	PURS_RC_RELEASE(as);
+	return purs_any_null;
+}
 
-PURS_FFI_FUNC_2(Control_Monad_ST_Internal_new, val, _, {
-	return purs_any_foreign_new(NULL, (void *) val);
-});
+static void Control_Monad_ST_Internal_finalize(void *tag, void *data) {
+	purs_any_t any = *((const purs_any_t*) data);
+	PURS_ANY_RELEASE(any);
+	purs_free(data);
+}
 
-PURS_FFI_FUNC_2(Control_Monad_ST_Internal_read, _ref, _, {
-	const purs_foreign_t * ref = purs_any_get_foreign(_ref);
-	return ref->data;
-});
+PURS_FFI_FUNC_2(Control_Monad_ST_Internal_new, val, _) {
+	/* retain value: the st keeps it alive */
+	PURS_ANY_RETAIN(val);
 
-PURS_FFI_FUNC_3(Control_Monad_ST_Internal_modify$, f, _ref, _, {
-	purs_foreign_t * ref = (purs_foreign_t *) purs_any_get_foreign(_ref);
-	const purs_any_t * _res = purs_any_app(f, ref->data);
-	const purs_record_t * res = purs_any_get_record(_res);
-	const purs_record_t * state = purs_record_find_by_key(res, "state");
-	const purs_record_t * value = purs_record_find_by_key(res, "value");
-	ref->data = (void *) state->value;
-	return value->value;
-});
+	/* move value onto heap */
+	purs_any_t *valheap = purs_new(purs_any_t);
+	memcpy(valheap, &val, sizeof(purs_any_t));
 
-PURS_FFI_FUNC_3(Control_Monad_ST_Internal_write, a, _ref, _, {
-	purs_foreign_t * ref = (purs_foreign_t *) purs_any_get_foreign(_ref);
-	ref->data = (void *) a;
-	return NULL;
-});
+	const purs_foreign_t *foreign = purs_foreign_new(
+	    NULL,
+	    (void *) valheap,
+	    Control_Monad_ST_Internal_finalize);
+	return purs_any_foreign(foreign);
+}
+
+PURS_FFI_FUNC_2(Control_Monad_ST_Internal_read, _ref, _) {
+	const purs_foreign_t *foreign = purs_any_unsafe_get_foreign(_ref);
+	purs_any_t any = *((const purs_any_t*) foreign->data);
+	return any;
+}
+
+PURS_FFI_FUNC_3(Control_Monad_ST_Internal_modify$, f, _ref, _) {
+	const purs_foreign_t *foreign = purs_any_unsafe_get_foreign(_ref);
+	purs_any_t currentstate = *((const purs_any_t*) foreign->data);
+
+	const purs_any_t v0 = purs_any_app(f, currentstate);
+	const purs_record_t *res = purs_any_force_record(v0);
+
+	purs_any_t nextstate = *(purs_record_find_by_key(res, "state"));
+	purs_any_t retvalue = *(purs_record_find_by_key(res, "value"));
+
+	PURS_ANY_RELEASE(currentstate);
+	PURS_ANY_RETAIN(nextstate);
+
+	/* move state onto heap */
+	memcpy(foreign->data, &nextstate, sizeof(purs_any_t));
+
+	PURS_RC_RELEASE(res);
+	PURS_ANY_RELEASE(v0);
+
+	return retvalue;
+}
+
+PURS_FFI_FUNC_3(Control_Monad_ST_Internal_write, nextstate, _ref, _) {
+	const purs_foreign_t *foreign = purs_any_unsafe_get_foreign(_ref);
+	purs_any_t currentstate = *((const purs_any_t*) foreign->data);
+
+	PURS_ANY_RELEASE(currentstate);
+	PURS_ANY_RETAIN(nextstate);
+
+	/* move state onto heap */
+	memcpy(foreign->data, &nextstate, sizeof(purs_any_t));
+
+	return purs_any_null;
+}
