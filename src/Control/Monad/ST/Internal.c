@@ -85,6 +85,9 @@ PURS_FFI_FUNC_2(Control_Monad_ST_Internal_read, _ref, _) {
 	return any;
 }
 
+static purs_str_t state_str = purs_str_static_lazy("state");
+static purs_str_t value_str = purs_str_static_lazy("value");
+
 PURS_FFI_FUNC_3(Control_Monad_ST_Internal_modify$, f, _ref, _) {
 	const purs_foreign_t *foreign = purs_any_unsafe_get_foreign(_ref);
 	purs_any_t currentstate = *((const purs_any_t*) foreign->data);
@@ -92,8 +95,8 @@ PURS_FFI_FUNC_3(Control_Monad_ST_Internal_modify$, f, _ref, _) {
 	const purs_any_t v0 = purs_any_app(f, currentstate);
 	const purs_record_t *res = purs_any_force_record(v0);
 
-	purs_any_t nextstate = *(purs_record_find_by_key(res, "state"));
-	purs_any_t retvalue = *(purs_record_find_by_key(res, "value"));
+	purs_any_t nextstate = *(purs_record_find_by_key(res, &state_str));
+	purs_any_t retvalue = *(purs_record_find_by_key(res, &value_str));
 
 	PURS_ANY_RELEASE(currentstate);
 	PURS_ANY_RETAIN(nextstate);
